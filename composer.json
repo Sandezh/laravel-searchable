@@ -1,0 +1,42 @@
+{
+    "name": "model/searchable",
+    "description": "A Laravel package to make models searchable",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sandezh",
+            "email": "sandeshbhandari1000@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.4|^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Model\\Searchable\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Model\\Searchable\\SiftServiceProvider"
+            ]
+        }
+    },
+    "keywords": [
+        "laravel",
+        "model",
+        "searchable",
+        "eloquent",
+        "search",
+        "laravel searchable",
+        "laravel search",
+        "model searchable",
+        "model search",
+        "eloquent searchable",
+        "eloquent search"
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
