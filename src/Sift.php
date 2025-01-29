@@ -23,12 +23,27 @@ trait Sift
     {
         $this->operator = config('searchable.custom_operators.operator', 'LIKE');
         $this->custom_timestamp_format = config('searchable.custom_timestamp_format', "DATE_FORMAT(%s, '%Y-%m-%d %H:%i:%s')");
-        $this->timestamp_fields = config('searchable.timestamp_fields', ['created_at', 'updated_at']);
         $this->custom_time_format = config('searchable.custom_time_format', "DATE_FORMAT(%s, '%H:%i:%s')");
-        $this->time_fields = config('searchable.time_fields', []);
         $this->custom_date_format = config('searchable.custom_date_format', "DATE_FORMAT(%s, '%Y-%m-%d')");
-        $this->date_fields = config('searchable.date_fields', []);
         $this->enable_exact_match_search = config('searchable.enable_exact_match_search', false);
+
+        $columns = Schema::getColumnListing($this->getTable());
+
+        $this->timestamp_fields = [];
+        $this->date_fields = [];
+        $this->time_fields = [];
+
+        foreach ($columns as $column) {
+            $type = Schema::getColumnType($this->getTable(), $column);
+
+            if (in_array($type, ['datetime', 'timestamp'])) {
+                $this->timestamp_fields[] = $column;
+            } elseif ($type === 'date') {
+                $this->date_fields[] = $column;
+            } elseif ($type === 'time') {
+                $this->time_fields[] = $column;
+            }
+        }
     }
 
     /**

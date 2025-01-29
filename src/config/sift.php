@@ -47,23 +47,6 @@ return [
 
     /*
     |---------------------------------------------------------------------- 
-    | Timestamp Fields 
-    |---------------------------------------------------------------------- 
-    | 
-    | This option defines the fields in your database that are considered 
-    | timestamp fields and require the custom format for searching. 
-    | Add or remove fields as per your application's needs. 
-    | Example: ['created_at', 'updated_at']
-    |
-    */
-
-    'timestamp_fields' => [
-        'created_at',
-        'updated_at',
-    ],
-
-    /*
-    |---------------------------------------------------------------------- 
     | Custom Timestamp Format 
     |---------------------------------------------------------------------- 
     | 
@@ -77,22 +60,6 @@ return [
     */
 
     'custom_timestamp_format' => "DATE_FORMAT(%s, '%b %D, %Y - %l:%i:%s %p')",
-
-    /*
-    |---------------------------------------------------------------------- 
-    | Date Fields 
-    |---------------------------------------------------------------------- 
-    | 
-    | This option defines the fields in your database that are considered 
-    | date-only fields (without time) and should use a custom format for searching. 
-    | These fields are treated as date-only values.
-    | Example: ['birthdate', 'start_date']
-    |
-    */
-
-    'date_fields' => [
-        'start_date', // Example field
-    ],
 
     /*
     |---------------------------------------------------------------------- 
@@ -112,23 +79,6 @@ return [
 
     /*
     |---------------------------------------------------------------------- 
-    | Time Fields
-    |---------------------------------------------------------------------- 
-    | 
-    | This option defines the fields in your database that are considered 
-    | time fields and should use the custom time format during search queries.
-    | These fields are treated as time-only values (without date).
-    | Example: ['start_time', 'end_time']
-    |
-    */
-
-    'time_fields' => [
-        'start_time', // Example field
-        'end_time', // Example field
-    ],
-
-    /*
-    |---------------------------------------------------------------------- 
     | Custom Time Format
     |---------------------------------------------------------------------- 
     | 
@@ -137,9 +87,9 @@ return [
     | The %s placeholder is replaced with the actual field name in the query.
     | Modify this format as per your application's requirements.
     |
-    | Example : DATE_FORMAT(start_time, '%l:%i:%s %p') = '3:15:45 PM'
+    | Example : DATE_FORMAT(start_time, '%h:%i:%s %p') = '3:15:45 PM'
     |
     */
 
-    'custom_time_format' => "DATE_FORMAT(%s, '%l:%i:%s %p')",
+    'custom_time_format' => "DATE_FORMAT(%s, '%h:%i:%s %p')",
 ];
