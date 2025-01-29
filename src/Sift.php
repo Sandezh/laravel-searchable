@@ -15,6 +15,7 @@ trait Sift
     protected $custom_date_format;
     protected $date_fields;
     protected $enable_exact_match_search;
+    protected $json_fields;
 
     /**
      * Helper method to initialize common settings.
@@ -32,6 +33,7 @@ trait Sift
         $this->timestamp_fields = [];
         $this->date_fields = [];
         $this->time_fields = [];
+        $this->json_fields = [];
 
         foreach ($columns as $column) {
             $type = Schema::getColumnType($this->getTable(), $column);
@@ -42,6 +44,8 @@ trait Sift
                 $this->date_fields[] = $column;
             } elseif ($type === 'time') {
                 $this->time_fields[] = $column;
+            } elseif ($type === 'json') {
+                $this->json_fields[] = $column;
             }
         }
     }
@@ -123,6 +127,12 @@ trait Sift
                 } else {
                     $query->orWhereRaw("{$formatted_time_query} {$this->operator} ?", ["%{$search_term}%"]);
                 }
+            } elseif (in_array($field, $this->json_fields)) {
+                if ($this->enable_exact_match_search) {
+                    $query->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT({$field}, '$.*')) = ?", [$search_term]);
+                } else {
+                    $query->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT({$field}, '$.*')) LIKE ?", ["%{$search_term}%"]);
+                }
             } else {
                 if ($this->enable_exact_match_search) {
                     $query->orWhere($field, '=', $search_term);
@@ -172,6 +182,14 @@ trait Sift
                             $query->whereRaw("{$formatted_time_query} = ?", [$search_term]);
                         } else {
                             $query->whereRaw("{$formatted_time_query} {$this->operator} ?", ["%{$search_term}%"]);
+                        }
+                    });
+                } elseif (in_array($column, $this->json_fields)) {
+                    $query->orWhereHas($relation, function (Builder $query) use ($column, $search_term) {
+                        if ($this->enable_exact_match_search) {
+                            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT({$column}, '$.*')) = ?", [$search_term]);
+                        } else {
+                            $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT({$column}, '$.*')) LIKE ?", ["%{$search_term}%"]);
                         }
                     });
                 } else {
