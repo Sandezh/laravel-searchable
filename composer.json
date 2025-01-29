@@ -25,17 +25,17 @@
         }
     },
     "keywords": [
-        "laravel",
-        "model",
-        "searchable",
-        "eloquent",
-        "search",
         "laravel searchable",
         "laravel search",
         "model searchable",
         "model search",
         "eloquent searchable",
-        "eloquent search"
+        "eloquent search",
+        "laravel",
+        "model",
+        "searchable",
+        "eloquent",
+        "search"
     ],
     "minimum-stability": "dev",
     "prefer-stable": true
