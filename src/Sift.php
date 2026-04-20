@@ -79,7 +79,7 @@ trait Sift
     {
         $this->initializeSiftTrait();
 
-        if (empty(static::$searchable) && empty(static::$relationSearchable)) {
+        if (empty(static::$searchable) && empty(static::$relation_searchable)) {
             return $query;
         }
 
@@ -161,7 +161,7 @@ trait Sift
      */
     protected function applyRelationSearchableFields(Builder $query, string $search_term): void
     {
-        foreach (static::$relationSearchable ?? [] as $relation => $columns) {
+        foreach (static::$relation_searchable ?? [] as $relation => $columns) {
             foreach ((array) $columns as $column) {
                 $query->orWhereHas($relation, function (Builder $query) use ($column, $search_term) {
                     switch (true) {
