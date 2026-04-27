@@ -102,223 +102,64 @@ trait Sift
 
     /**
      * Apply the search query to the model's direct searchable fields.
-     *
-     * @param Builder $query
-     * @param string $search_term
-     * @return void
      */
     protected function applySearchableFields(Builder $query, string $search_term): void
     {
-        $jsonSearchable = property_exists(static::class, 'json_searchable') ? static::$json_searchable : [];
-        $jsonSearchableFields = [];
-        foreach ($jsonSearchable as $field => $keys) {
-            $jsonSearchableFields[] = is_numeric($field) ? $keys : $field;
-        }
+        $jsonSearchableFields = $this->getNormalizedJsonFields(property_exists(static::class, 'json_searchable') ? static::$json_searchable : []);
 
         foreach (static::$searchable ?? [] as $field) {
             if (in_array($field, $jsonSearchableFields)) {
                 continue;
             }
 
-            $query->orWhere(function (Builder $query) use ($field, $search_term) {
-                $searchTermValue = $this->enable_exact_match_search ? $search_term : "%{$search_term}%";
-                $operator = $this->enable_exact_match_search ? '=' : $this->operator;
-
-                switch (true) {
-                    case in_array($field, $this->timestamp_fields):
-                        $formatted_timestamp_query = str_replace('%s', $field, $this->custom_timestamp_format);
-                        if ($this->case_sensitive) {
-                            $query->whereRaw("{$formatted_timestamp_query} {$operator} ?", [$searchTermValue]);
-                        } else {
-                            $query->whereRaw("LOWER({$formatted_timestamp_query}) {$operator} LOWER(?)", [$searchTermValue]);
-                        }
-                        break;
-
-                    case in_array($field, $this->date_fields):
-                        $formatted_date_query = str_replace('%s', $field, $this->custom_date_format);
-                        if ($this->case_sensitive) {
-                            $query->whereRaw("{$formatted_date_query} {$operator} ?", [$searchTermValue]);
-                        } else {
-                            $query->whereRaw("LOWER({$formatted_date_query}) {$operator} LOWER(?)", [$searchTermValue]);
-                        }
-                        break;
-
-                    case in_array($field, $this->time_fields):
-                        $formatted_time_query = str_replace('%s', $field, $this->custom_time_format);
-                        if ($this->case_sensitive) {
-                            $query->whereRaw("{$formatted_time_query} {$operator} ?", [$searchTermValue]);
-                        } else {
-                            $query->whereRaw("LOWER({$formatted_time_query}) {$operator} LOWER(?)", [$searchTermValue]);
-                        }
-                        break;
-
-                    case in_array($field, $this->json_fields):
-                        $jsonExpression = "JSON_UNQUOTE(JSON_EXTRACT({$field}, '$.*'))";
-                        if ($this->case_sensitive) {
-                            $query->whereRaw("{$jsonExpression} {$operator} ?", [$searchTermValue]);
-                        } else {
-                            $query->whereRaw("LOWER({$jsonExpression}) {$operator} LOWER(?)", [$searchTermValue]);
-                        }
-                        break;
-
-                    default:
-                        if ($this->case_sensitive) {
-                            if ($this->enable_exact_match_search) {
-                                $query->where($field, '=', $search_term);
-                            } else {
-                                $query->where($field, $this->operator, "%{$search_term}%");
-                            }
-                        } else {
-                            $query->whereRaw("LOWER({$field}) {$operator} LOWER(?)", [$searchTermValue]);
-                        }
-                        break;
-                }
-            });
+            $query->orWhere(fn(Builder $q) => $this->applyFieldConstraint($q, $field, $search_term));
         }
     }
 
     /**
      * Apply the search query to the model's relationSearchable fields.
-     *
-     * @param Builder $query
-     * @param string $search_term
-     * @return void
      */
     protected function applyRelationSearchableFields(Builder $query, string $search_term): void
     {
         $jsonRelationSearchable = property_exists(static::class, 'json_relation_searchable') ? static::$json_relation_searchable : [];
 
         foreach (static::$relation_searchable ?? [] as $relation => $columns) {
-            $jsonRelationFields = [];
-            if (isset($jsonRelationSearchable[$relation])) {
-                foreach ((array) $jsonRelationSearchable[$relation] as $field => $keys) {
-                    $jsonRelationFields[] = is_numeric($field) ? $keys : $field;
-                }
-            }
+            $jsonRelationFields = $this->getNormalizedJsonFields($jsonRelationSearchable[$relation] ?? []);
 
             foreach ((array) $columns as $column) {
                 if (in_array($column, $jsonRelationFields)) {
                     continue;
                 }
 
-                $query->orWhereHas($relation, function (Builder $query) use ($column, $search_term) {
-                    $searchTermValue = $this->enable_exact_match_search ? $search_term : "%{$search_term}%";
-                    $operator = $this->enable_exact_match_search ? '=' : $this->operator;
-
-                    switch (true) {
-                        case in_array($column, $this->timestamp_fields):
-                            $formatted_timestamp_query = str_replace('%s', $column, $this->custom_timestamp_format);
-                            if ($this->case_sensitive) {
-                                $query->whereRaw("{$formatted_timestamp_query} {$operator} ?", [$searchTermValue]);
-                            } else {
-                                $query->whereRaw("LOWER({$formatted_timestamp_query}) {$operator} LOWER(?)", [$searchTermValue]);
-                            }
-                            break;
-
-                        case in_array($column, $this->date_fields):
-                            $formatted_date_query = str_replace('%s', $column, $this->custom_date_format);
-                            if ($this->case_sensitive) {
-                                $query->whereRaw("{$formatted_date_query} {$operator} ?", [$searchTermValue]);
-                            } else {
-                                $query->whereRaw("LOWER({$formatted_date_query}) {$operator} LOWER(?)", [$searchTermValue]);
-                            }
-                            break;
-
-                        case in_array($column, $this->time_fields):
-                            $formatted_time_query = str_replace('%s', $column, $this->custom_time_format);
-                            if ($this->case_sensitive) {
-                                $query->whereRaw("{$formatted_time_query} {$operator} ?", [$searchTermValue]);
-                            } else {
-                                $query->whereRaw("LOWER({$formatted_time_query}) {$operator} LOWER(?)", [$searchTermValue]);
-                            }
-                            break;
-
-                        case in_array($column, $this->json_fields):
-                            $jsonExpression = "JSON_UNQUOTE(JSON_EXTRACT({$column}, '$.*'))";
-                            if ($this->case_sensitive) {
-                                $query->whereRaw("{$jsonExpression} {$operator} ?", [$searchTermValue]);
-                            } else {
-                                $query->whereRaw("LOWER({$jsonExpression}) {$operator} LOWER(?)", [$searchTermValue]);
-                            }
-                            break;
-
-                        default:
-                            if ($this->case_sensitive) {
-                                if ($this->enable_exact_match_search) {
-                                    $query->where($column, '=', $search_term);
-                                } else {
-                                    $query->where($column, $this->operator, "%{$search_term}%");
-                                }
-                            } else {
-                                $query->whereRaw("LOWER({$column}) {$operator} LOWER(?)", [$searchTermValue]);
-                            }
-                            break;
-                    }
-                });
+                $query->orWhereHas($relation, fn(Builder $q) => $this->applyFieldConstraint($q, $column, $search_term));
             }
         }
     }
 
     /**
      * Apply the search query to the model's jsonSearchable fields.
-     *
-     * @param Builder $query
-     * @param string $search_term
-     * @return void
      */
     protected function applyJsonSearchableFields(Builder $query, string $search_term): void
     {
         $jsonSearchable = property_exists(static::class, 'json_searchable') ? static::$json_searchable : [];
 
         foreach ($jsonSearchable ?? [] as $field => $keys) {
-            if (is_numeric($field)) {
-                $field = $keys;
-                $keys = ['*'];
-            }
-
-            $keys = (array) $keys;
-
-            foreach ($keys as $key) {
-                $query->orWhere(function (Builder $query) use ($field, $key, $search_term) {
-                    $jsonSelector = $key === '*' ? '$.*' : "$.{$key}";
-                    $jsonExpression = "JSON_UNQUOTE(JSON_EXTRACT({$field}, '{$jsonSelector}'))";
-
-                    $this->applyJsonConstraint($query, $jsonExpression, $key, $search_term);
-                });
-            }
+            $this->processJsonSearch($query, $field, $keys, $search_term);
         }
     }
 
     /**
      * Apply the search query to the model's jsonRelationSearchable fields.
-     *
-     * @param Builder $query
-     * @param string $search_term
-     * @return void
      */
     protected function applyJsonRelationSearchableFields(Builder $query, string $search_term): void
     {
         $jsonRelationSearchable = property_exists(static::class, 'json_relation_searchable') ? static::$json_relation_searchable : [];
 
         foreach ($jsonRelationSearchable ?? [] as $relation => $json_columns) {
-            $query->orWhereHas($relation, function (Builder $query) use ($json_columns, $search_term) {
-                $query->where(function (Builder $query) use ($json_columns, $search_term) {
-                    foreach ((array) $json_columns as $json_column => $keys) {
-                        if (is_numeric($json_column)) {
-                            $json_column = $keys;
-                            $keys = ['*'];
-                        }
-
-                        $keys = (array) $keys;
-
-                        foreach ($keys as $key) {
-                            $query->orWhere(function (Builder $query) use ($json_column, $key, $search_term) {
-                                $jsonSelector = $key === '*' ? '$.*' : "$.{$key}";
-                                $jsonExpression = "JSON_UNQUOTE(JSON_EXTRACT({$json_column}, '{$jsonSelector}'))";
-
-                                $this->applyJsonConstraint($query, $jsonExpression, $key, $search_term);
-                            });
-                        }
+            $query->orWhereHas($relation, function (Builder $q) use ($json_columns, $search_term) {
+                $q->where(function (Builder $innerQ) use ($json_columns, $search_term) {
+                    foreach ((array) $json_columns as $field => $keys) {
+                        $this->processJsonSearch($innerQ, $field, $keys, $search_term);
                     }
                 });
             });
@@ -326,54 +167,72 @@ trait Sift
     }
 
     /**
-     * Helper to apply the appropriate constraint (date/time/timestamp or default) to a JSON expression.
-     *
-     * @param Builder $query
-     * @param string $jsonExpression
-     * @param string $key
-     * @param string $search_term
-     * @return void
+     * Unified logic to apply constraints to a field.
      */
-    protected function applyJsonConstraint(Builder $query, string $jsonExpression, string $key, string $search_term): void
+    protected function applyFieldConstraint(Builder $query, string $field, string $search_term): void
+    {
+        $isJson = in_array($field, $this->json_fields);
+        $expression = $isJson ? "JSON_UNQUOTE(JSON_EXTRACT({$field}, '$.*'))" : $field;
+
+        $this->applyRawConstraint($query, $expression, $field, $search_term);
+    }
+
+    /**
+     * Apply a raw SQL constraint with date/time formatting and case sensitivity.
+     */
+    protected function applyRawConstraint(Builder $query, string $expression, string $field_for_type, string $search_term): void
     {
         $searchTermValue = $this->enable_exact_match_search ? $search_term : "%{$search_term}%";
         $operator = $this->enable_exact_match_search ? '=' : $this->operator;
 
-        switch (true) {
-            case in_array($key, $this->timestamp_fields):
-                $formatted_query = str_replace('%s', $jsonExpression, $this->custom_timestamp_format);
-                if ($this->case_sensitive) {
-                    $query->whereRaw("{$formatted_query} {$operator} ?", [$searchTermValue]);
-                } else {
-                    $query->whereRaw("LOWER({$formatted_query}) {$operator} LOWER(?)", [$searchTermValue]);
-                }
-                break;
+        $format = match (true) {
+            in_array($field_for_type, $this->timestamp_fields) => $this->custom_timestamp_format,
+            in_array($field_for_type, $this->date_fields) => $this->custom_date_format,
+            in_array($field_for_type, $this->time_fields) => $this->custom_time_format,
+            default => null,
+        };
 
-            case in_array($key, $this->date_fields):
-                $formatted_query = str_replace('%s', $jsonExpression, $this->custom_date_format);
-                if ($this->case_sensitive) {
-                    $query->whereRaw("{$formatted_query} {$operator} ?", [$searchTermValue]);
-                } else {
-                    $query->whereRaw("LOWER({$formatted_query}) {$operator} LOWER(?)", [$searchTermValue]);
-                }
-                break;
-
-            case in_array($key, $this->time_fields):
-                $formatted_query = str_replace('%s', $jsonExpression, $this->custom_time_format);
-                if ($this->case_sensitive) {
-                    $query->whereRaw("{$formatted_query} {$operator} ?", [$searchTermValue]);
-                } else {
-                    $query->whereRaw("LOWER({$formatted_query}) {$operator} LOWER(?)", [$searchTermValue]);
-                }
-                break;
-
-            default:
-                if ($this->case_sensitive) {
-                    $query->whereRaw("{$jsonExpression} {$operator} ?", [$searchTermValue]);
-                } else {
-                    $query->whereRaw("LOWER({$jsonExpression}) {$operator} LOWER(?)", [$searchTermValue]);
-                }
-                break;
+        if ($format) {
+            $expression = str_replace('%s', $expression, $format);
         }
+
+        if ($this->case_sensitive && !$format && !in_array($field_for_type, $this->json_fields)) {
+            $query->where($field_for_type, $operator, $searchTermValue);
+            return;
+        }
+
+        $sql = $this->case_sensitive ? "{$expression} {$operator} ?" : "LOWER({$expression}) {$operator} LOWER(?)";
+        $query->whereRaw($sql, [$searchTermValue]);
+    }
+
+    /**
+     * Helper to process JSON search logic for both direct and relational fields.
+     */
+    protected function processJsonSearch(Builder $query, $field, $keys, string $search_term): void
+    {
+        if (is_numeric($field)) {
+            $field = $keys;
+            $keys = ['*'];
+        }
+
+        foreach ((array) $keys as $key) {
+            $query->orWhere(function (Builder $q) use ($field, $key, $search_term) {
+                $jsonSelector = $key === '*' ? '$.*' : "$.{$key}";
+                $expression = "JSON_UNQUOTE(JSON_EXTRACT({$field}, '{$jsonSelector}'))";
+                $this->applyRawConstraint($q, $expression, $key, $search_term);
+            });
+        }
+    }
+
+    /**
+     * Get normalized field names from JSON search configuration.
+     */
+    protected function getNormalizedJsonFields(array $config): array
+    {
+        $fields = [];
+        foreach ($config as $field => $keys) {
+            $fields[] = is_numeric($field) ? $keys : $field;
+        }
+        return $fields;
     }
 }
