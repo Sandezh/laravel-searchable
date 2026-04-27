@@ -17,6 +17,10 @@ trait Sift
     protected $custom_time_format;
     protected $time_fields = [];
     protected $json_fields = [];
+    protected static $searchable = [];
+    protected static $relation_searchable = [];
+    protected static $json_searchable = [];
+    protected static $json_relation_searchable = [];
 
     /**
      * Helper method to initialize common settings.
