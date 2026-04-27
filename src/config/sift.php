@@ -30,6 +30,18 @@ return [
     'enable_exact_match_search' => false,
 
     /*
+    |---------------------------------------------------------------------- 
+    | Case Sensitive Search
+    |---------------------------------------------------------------------- 
+    |
+    | If set to true, the search will be case-sensitive.
+    | If set to false, the search will be case-insensitive.
+    |
+    | Default: false
+    */
+    'case_sensitive' => false,
+
+    /*
     |--------------------------------------------------------------------------- 
     | Default Exclude Fields
     |--------------------------------------------------------------------------- 
