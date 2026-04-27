@@ -8,8 +8,7 @@ use Model\Searchable\Tests\Models\Post;
 
 class SearchTest extends TestCase
 {
-    /** @test */
-    public function it_can_search_standard_fields()
+    public function test_it_can_search_standard_fields()
     {
         User::create(['name' => 'John Doe', 'email' => 'john@example.com']);
         User::create(['name' => 'Jane Smith', 'email' => 'jane@example.com']);
@@ -20,8 +19,7 @@ class SearchTest extends TestCase
         $this->assertEquals('John Doe', $results->first()->name);
     }
 
-    /** @test */
-    public function it_can_search_json_fields()
+    public function test_it_can_search_json_fields()
     {
         User::create([
             'name' => 'John Doe', 
@@ -35,8 +33,7 @@ class SearchTest extends TestCase
         $this->assertEquals('John Doe', $results->first()->name);
     }
 
-    /** @test */
-    public function it_returns_empty_results_when_no_match_found()
+    public function test_it_returns_empty_results_when_no_match_found()
     {
         User::create(['name' => 'John Doe', 'email' => 'john@example.com']);
 
@@ -45,8 +42,7 @@ class SearchTest extends TestCase
         $this->assertCount(0, $results);
     }
 
-    /** @test */
-    public function it_handles_null_search_term()
+    public function test_it_handles_null_search_term()
     {
         User::create(['name' => 'John Doe', 'email' => 'john@example.com']);
 
@@ -55,8 +51,7 @@ class SearchTest extends TestCase
         $this->assertCount(1, $results);
     }
 
-    /** @test */
-    public function it_can_search_relationships()
+    public function test_it_can_search_relationships()
     {
         $user = User::create(['name' => 'John Doe', 'email' => 'john@example.com']);
         $user->posts()->create(['title' => 'Laravel Searchable Package', 'content' => 'Content here']);

@@ -7,8 +7,7 @@ use Model\Searchable\Sift;
 
 class SiftStructureTest extends TestCase
 {
-    /** @test */
-    public function the_sift_trait_has_expected_methods()
+    public function test_the_sift_trait_has_expected_methods()
     {
         $mock = new class {
             use Sift;
@@ -18,8 +17,7 @@ class SiftStructureTest extends TestCase
         $this->assertTrue(method_exists($mock, 'initializeSiftTrait'), 'Trait should have initializeSiftTrait method');
     }
 
-    /** @test */
-    public function it_can_normalize_json_field_names()
+    public function test_it_can_normalize_json_field_names()
     {
         $mock = new class {
             use Sift;
@@ -34,8 +32,7 @@ class SiftStructureTest extends TestCase
         $this->assertEquals($expected, $mock->testNormalize($input));
     }
 
-    /** @test */
-    public function it_has_default_search_strategy()
+    public function test_it_has_default_search_strategy()
     {
         $mock = new class {
             use Sift;
@@ -49,8 +46,7 @@ class SiftStructureTest extends TestCase
         $this->assertEquals('balanced', $mock->search_strategy);
     }
 
-    /** @test */
-    public function it_can_get_searchable_fields_dynamically()
+    public function test_it_can_get_searchable_fields_dynamically()
     {
         $mock = new class {
             use Sift;
