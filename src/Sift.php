@@ -17,10 +17,6 @@ trait Sift
     protected $custom_time_format;
     protected $time_fields = [];
     protected $json_fields = [];
-    protected static $searchable = [];
-    protected static $relation_searchable = [];
-    protected static $json_searchable = [];
-    protected static $json_relation_searchable = [];
 
     /**
      * Helper method to initialize common settings.
@@ -85,10 +81,10 @@ trait Sift
     {
         $this->initializeSiftTrait();
 
-        $searchable = property_exists(static::class, 'searchable') ? static::$searchable : [];
-        $relationSearchable = property_exists(static::class, 'relation_searchable') ? static::$relation_searchable : [];
-        $jsonSearchable = property_exists(static::class, 'json_searchable') ? static::$json_searchable : [];
-        $jsonRelationSearchable = property_exists(static::class, 'json_relation_searchable') ? static::$json_relation_searchable : [];
+        $searchable = $this->getStaticProperty('searchable');
+        $relationSearchable = $this->getStaticProperty('relation_searchable');
+        $jsonSearchable = $this->getStaticProperty('json_searchable');
+        $jsonRelationSearchable = $this->getStaticProperty('json_relation_searchable');
 
         if (empty($searchable) && empty($relationSearchable) && empty($jsonSearchable) && empty($jsonRelationSearchable)) {
             return $query;
@@ -105,13 +101,22 @@ trait Sift
     }
 
     /**
+     * Safely get a static property from the model.
+     */
+    protected function getStaticProperty(string $property): array
+    {
+        return property_exists(static::class, $property) ? static::$$property : [];
+    }
+
+    /**
      * Apply the search query to the model's direct searchable fields.
      */
     protected function applySearchableFields(Builder $query, string $search_term): void
     {
-        $jsonSearchableFields = $this->getNormalizedJsonFields(property_exists(static::class, 'json_searchable') ? static::$json_searchable : []);
+        $searchable = $this->getStaticProperty('searchable');
+        $jsonSearchableFields = $this->getNormalizedJsonFields($this->getStaticProperty('json_searchable'));
 
-        foreach (static::$searchable ?? [] as $field) {
+        foreach ($searchable as $field) {
             if (in_array($field, $jsonSearchableFields)) {
                 continue;
             }
@@ -125,9 +130,10 @@ trait Sift
      */
     protected function applyRelationSearchableFields(Builder $query, string $search_term): void
     {
-        $jsonRelationSearchable = property_exists(static::class, 'json_relation_searchable') ? static::$json_relation_searchable : [];
+        $relationSearchable = $this->getStaticProperty('relation_searchable');
+        $jsonRelationSearchable = $this->getStaticProperty('json_relation_searchable');
 
-        foreach (static::$relation_searchable ?? [] as $relation => $columns) {
+        foreach ($relationSearchable as $relation => $columns) {
             $jsonRelationFields = $this->getNormalizedJsonFields($jsonRelationSearchable[$relation] ?? []);
 
             foreach ((array) $columns as $column) {
@@ -145,9 +151,9 @@ trait Sift
      */
     protected function applyJsonSearchableFields(Builder $query, string $search_term): void
     {
-        $jsonSearchable = property_exists(static::class, 'json_searchable') ? static::$json_searchable : [];
+        $jsonSearchable = $this->getStaticProperty('json_searchable');
 
-        foreach ($jsonSearchable ?? [] as $field => $keys) {
+        foreach ($jsonSearchable as $field => $keys) {
             $this->processJsonSearch($query, $field, $keys, $search_term);
         }
     }
@@ -157,9 +163,9 @@ trait Sift
      */
     protected function applyJsonRelationSearchableFields(Builder $query, string $search_term): void
     {
-        $jsonRelationSearchable = property_exists(static::class, 'json_relation_searchable') ? static::$json_relation_searchable : [];
+        $jsonRelationSearchable = $this->getStaticProperty('json_relation_searchable');
 
-        foreach ($jsonRelationSearchable ?? [] as $relation => $json_columns) {
+        foreach ($jsonRelationSearchable as $relation => $json_columns) {
             $query->orWhereHas($relation, function (Builder $q) use ($json_columns, $search_term) {
                 $q->where(function (Builder $innerQ) use ($json_columns, $search_term) {
                     foreach ((array) $json_columns as $field => $keys) {
@@ -176,7 +182,17 @@ trait Sift
     protected function applyFieldConstraint(Builder $query, string $field, string $search_term): void
     {
         $isJson = in_array($field, $this->json_fields);
-        $expression = $isJson ? "JSON_UNQUOTE(JSON_EXTRACT({$field}, '$.*'))" : $field;
+        $driver = $query->getConnection()->getDriverName();
+
+        if ($isJson) {
+            if ($driver === 'sqlite') {
+                $expression = $field;
+            } else {
+                $expression = "JSON_UNQUOTE(JSON_EXTRACT({$field}, '$.*'))";
+            }
+        } else {
+            $expression = $field;
+        }
 
         $this->applyRawConstraint($query, $expression, $field, $search_term);
     }
@@ -219,11 +235,19 @@ trait Sift
             $keys = ['*'];
         }
 
+        $driver = $query->getConnection()->getDriverName();
+
         foreach ((array) $keys as $key) {
-            $query->orWhere(function (Builder $q) use ($field, $key, $search_term) {
-                $jsonSelector = $key === '*' ? '$.*' : "$.{$key}";
-                $expression = "JSON_UNQUOTE(JSON_EXTRACT({$field}, '{$jsonSelector}'))";
-                $this->applyRawConstraint($q, $expression, $key, $search_term);
+            $query->orWhere(function (Builder $q) use ($field, $key, $search_term, $driver) {
+                if ($driver === 'sqlite') {
+                    $selector = $key === '*' ? '' : "->{$key}";
+                    $expression = "{$field}{$selector}";
+                    $this->applyRawConstraint($q, $expression, $key, $search_term);
+                } else {
+                    $jsonSelector = $key === '*' ? '$.*' : "$.{$key}";
+                    $expression = "JSON_UNQUOTE(JSON_EXTRACT({$field}, '{$jsonSelector}'))";
+                    $this->applyRawConstraint($q, $expression, $key, $search_term);
+                }
             });
         }
     }
