@@ -1,10 +1,10 @@
 <?php
 
-namespace Model\Searchable\Tests\Feature;
+namespace Searchkit\Searchable\Tests\Feature;
 
-use Model\Searchable\Tests\TestCase;
-use Model\Searchable\Tests\Models\User;
-use Model\Searchable\Tests\Models\Post;
+use Searchkit\Searchable\Tests\TestCase;
+use Searchkit\Searchable\Tests\Models\User;
+use Searchkit\Searchable\Tests\Models\Post;
 
 class SearchTest extends TestCase
 {

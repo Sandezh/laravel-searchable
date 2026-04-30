@@ -1,14 +1,14 @@
 <?php
 
-namespace Model\Searchable;
+namespace Searchkit\Searchable;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Model\Searchable\Traits\Core;
-use Model\Searchable\Traits\SearchableFields;
-use Model\Searchable\Traits\RelationSearchableFields;
-use Model\Searchable\Traits\JsonSearchableFields;
-use Model\Searchable\Traits\JsonRelationSearchableFields;
+use Searchkit\Searchable\Traits\Core;
+use Searchkit\Searchable\Traits\SearchableFields;
+use Searchkit\Searchable\Traits\RelationSearchableFields;
+use Searchkit\Searchable\Traits\JsonSearchableFields;
+use Searchkit\Searchable\Traits\JsonRelationSearchableFields;
 
 /**
  * @mixin Model

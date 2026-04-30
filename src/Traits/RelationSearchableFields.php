@@ -1,6 +1,6 @@
 <?php
 
-namespace Model\Searchable\Traits;
+namespace Searchkit\Searchable\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;

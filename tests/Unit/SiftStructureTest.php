@@ -1,9 +1,9 @@
 <?php
 
-namespace Model\Searchable\Tests\Unit;
+namespace Searchkit\Searchable\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Model\Searchable\Sift;
+use Searchkit\Searchable\Sift;
 
 class SiftStructureTest extends TestCase
 {

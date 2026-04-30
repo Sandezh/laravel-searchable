@@ -17,7 +17,7 @@ A lightweight and powerful Laravel package to make your Eloquent models searchab
 You can install the package via composer:
 
 ```bash
-composer require model/searchable
+composer require searchkit/searchable
 ```
 
 ## Configuration
@@ -25,7 +25,7 @@ composer require model/searchable
 Publish the configuration file to customize the search behavior:
 
 ```bash
-php artisan vendor:publish --provider="Model\Searchable\SiftServiceProvider" --tag="config"
+php artisan vendor:publish --provider="Searchkit\Searchable\SiftServiceProvider" --tag="config"
 ```
 
 The published configuration file `config/searchable.php` allows you to control the search behavior globally:
@@ -46,7 +46,7 @@ It is common practice to include the trait in a `BaseModel` so it's available ac
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Model\Searchable\Sift;
+use Searchkit\Searchable\Sift;
 
 class BaseModel extends Model
 {

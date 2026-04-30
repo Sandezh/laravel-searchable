@@ -1,6 +1,6 @@
 <?php
 
-namespace Model\Searchable;
+namespace Searchkit\Searchable;
 
 use Illuminate\Support\ServiceProvider;
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace Model\Searchable\Tests;
+namespace Searchkit\Searchable\Tests;
 
-use Model\Searchable\SiftServiceProvider;
+use Searchkit\Searchable\SiftServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

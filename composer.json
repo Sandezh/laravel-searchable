@@ -1,5 +1,5 @@
 {
-    "name": "model/searchable",
+    "name": "searchkit/searchable",
     "description": "A Laravel package to make Eloquent models searchable using a simple trait",
     "type": "library",
     "license": "MIT",
@@ -20,18 +20,18 @@
     },
     "autoload": {
         "psr-4": {
-            "Model\\Searchable\\": "src/"
+            "Searchkit\\Searchable\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Model\\Searchable\\Tests\\": "tests/"
+            "Searchkit\\Searchable\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "Model\\Searchable\\SiftServiceProvider"
+                "Searchkit\\Searchable\\SiftServiceProvider"
             ]
         }
     },

@@ -1,9 +1,9 @@
 <?php
 
-namespace Model\Searchable\Tests\Models;
+namespace Searchkit\Searchable\Tests\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Model\Searchable\Sift;
+use Searchkit\Searchable\Sift;
 
 class User extends Model
 {
