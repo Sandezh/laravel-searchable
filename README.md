@@ -231,6 +231,24 @@ class ProductRepository extends BaseRepository
 }
 ```
 
+---
+
+## Sample Application
+
+Want to see **Laravel Searchable (Sift)** in action inside a real Laravel project?
+
+Check out the official sample application that demonstrates how to integrate the package using models, repositories, and controllers in a full Laravel setup:
+
+👉 **[laravel-searchable-sample-app](https://github.com/Sandezh/laravel-searchable-sample-app)**
+
+The sample app includes:
+- A complete Laravel project wired up with `searchkit/searchable`
+- `BaseModel` and model configurations with standard, relational, and JSON search fields
+- A `BaseRepository` and concrete repositories using the `search()` scope
+- Database seeders to populate test data and verify search results out of the box
+
+---
+
 ## Requirements
 
 - **PHP**: ^7.4 | ^8.0
